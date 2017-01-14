@@ -2,12 +2,18 @@ package com.pawmot.geoquiz
 
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_quiz.*
 
 class QuizActivity : AppCompatActivity() {
+
+    companion object Logging {
+        private val TAG = QuizActivity::class.simpleName
+        private val KEY_INDEX = "index"
+    }
 
     private val questions = arrayOf(
             Question(R.string.question_oceans, true),
@@ -21,7 +27,11 @@ class QuizActivity : AppCompatActivity() {
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.d(TAG, "onCreate(Bundle) called")
         setContentView(R.layout.activity_quiz)
+
+        val idx = savedInstanceState?.getInt(KEY_INDEX, 0)
+        currentIndex = idx ?: 0
 
         trueButton.setOnClickListener { checkAnswer(true) }
         falseButton.setOnClickListener { checkAnswer(false) }
@@ -30,6 +40,12 @@ class QuizActivity : AppCompatActivity() {
         questionTextView.setOnClickListener { selectNextQuestion() }
 
         showCurrentQuestionText()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        Log.i(TAG, "onSaveInstanceState")
+        outState.putInt(KEY_INDEX, currentIndex)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
