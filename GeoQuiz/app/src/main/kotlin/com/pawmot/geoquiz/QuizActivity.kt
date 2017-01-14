@@ -25,10 +25,9 @@ class QuizActivity : AppCompatActivity() {
 
         trueButton.setOnClickListener { checkAnswer(true) }
         falseButton.setOnClickListener { checkAnswer(false) }
-        nextButton.setOnClickListener {
-            selectNextQuestion()
-            showCurrentQuestionText()
-        }
+        prevButton.setOnClickListener { selectPreviousQuestion() }
+        nextButton.setOnClickListener { selectNextQuestion() }
+        questionTextView.setOnClickListener { selectNextQuestion() }
 
         showCurrentQuestionText()
     }
@@ -46,12 +45,18 @@ class QuizActivity : AppCompatActivity() {
         return super.onOptionsItemSelected(item)
     }
 
-    private fun showCurrentQuestionText() {
-        questionTextView.setText(questions[currentIndex].textResId)
+    private fun selectPreviousQuestion() {
+        currentIndex = (if (currentIndex > 0) currentIndex else questions.size) - 1
+        showCurrentQuestionText()
     }
 
     private fun selectNextQuestion() {
         currentIndex = (currentIndex + 1) % questions.size
+        showCurrentQuestionText()
+    }
+
+    private fun showCurrentQuestionText() {
+        questionTextView.setText(questions[currentIndex].textResId)
     }
 
     private fun checkAnswer(userPressedTrue: Boolean) {
