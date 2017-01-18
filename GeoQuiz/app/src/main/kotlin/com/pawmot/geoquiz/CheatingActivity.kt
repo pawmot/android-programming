@@ -39,6 +39,7 @@ class CheatingActivity : AppCompatActivity() {
         setContentView(R.layout.activity_cheating)
 
         answerIsTrue = intent.getBooleanExtra(EXTRA_ANSWER_IS_TRUE, false)
+        setApiLevel()
 
         showAnswerButton.setOnClickListener {
             if (answerIsTrue) {
@@ -66,6 +67,10 @@ class CheatingActivity : AppCompatActivity() {
                 showAnswerButton.visibility = INVISIBLE
             }
         }
+    }
+
+    private fun setApiLevel() {
+        apiLevelTextView.text = String.format(resources.getString(R.string.api_level), Build.VERSION.SDK_INT)
     }
 
     private fun setAnswerShownResult(isAnswerShown: Boolean) {
