@@ -25,4 +25,9 @@ class CrimeListFragment : Fragment() {
         adapter = CrimeAdapter(lab.getCrimes())
         crimeRecyclerView.adapter = adapter
     }
+
+    override fun onResume() {
+        super.onResume()
+        adapter?.notifyDataSetChanged()
+    }
 }
