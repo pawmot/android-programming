@@ -15,7 +15,7 @@ import java.util.*
 class CrimeFragment : Fragment() {
     companion object Companion {
         private val argCrimeId = "crime_id"
-        fun newInstance(crimeId: UUID) : CrimeFragment {
+        fun newInstance(crimeId: UUID): CrimeFragment {
             val args = Bundle()
             args.putSerializable(argCrimeId, crimeId)
 

@@ -5,17 +5,15 @@ import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.pawmot.criminalintent.CrimeActivity
+import com.pawmot.criminalintent.CrimePagerActivity
 import com.pawmot.criminalintent.R
 import com.pawmot.criminalintent.model.Crime
 import kotlinx.android.synthetic.main.list_item_crime.view.*
 
-class CrimeAdapter(private val crimes: List<Crime>) : RecyclerView.Adapter<CrimeAdapter.CrimeHolder>() {
-    companion object Companion {
-        val TAG = CrimeAdapter::class.simpleName
-    }
+class CrimeRecyclerViewAdapter(private val crimes: List<Crime>) : RecyclerView.Adapter<CrimeRecyclerViewAdapter.CrimeHolder>() {
 
     class CrimeHolder(view: View, private val ctx: Context) : RecyclerView.ViewHolder(view), View.OnClickListener {
+
         init {
             itemView.setOnClickListener(this)
         }
@@ -23,14 +21,18 @@ class CrimeAdapter(private val crimes: List<Crime>) : RecyclerView.Adapter<Crime
         private lateinit var crime: Crime
 
         fun bindCrime(crime: Crime) {
+            itemView.listItemCrimeSolvedCheckBox.setOnCheckedChangeListener(null)
             this.crime = crime
             itemView.listItemCrimeTitleTextView.text = crime.title
             itemView.listItemCrimeDateTextView.text = crime.date.toString()
             itemView.listItemCrimeSolvedCheckBox.isChecked = crime.solved
+            itemView.listItemCrimeSolvedCheckBox.setOnCheckedChangeListener { compoundButton, checked ->
+                crime.solved = checked
+            }
         }
 
         override fun onClick(v: View?) {
-            val intent = CrimeActivity.newIntent(ctx, crime.uuid!!)
+            val intent = CrimePagerActivity.newIntent(ctx, crime.uuid!!)
             ctx.startActivity(intent)
         }
     }
