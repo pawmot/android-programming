@@ -33,4 +33,13 @@ class CrimeLab private constructor(private val ctx: Context) {
     fun getCrime(id: UUID) : Crime? {
         return crimes.find { it.uuid == id }
     }
+
+    fun getCrimeIdx(id: UUID): Int? {
+        crimes.forEachIndexed { i, c ->
+            if (c.uuid == id) {
+                return i
+            }
+        }
+        return null
+    }
 }
