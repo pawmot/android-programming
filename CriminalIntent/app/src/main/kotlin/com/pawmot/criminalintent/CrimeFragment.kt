@@ -1,5 +1,7 @@
 package com.pawmot.criminalintent
 
+import android.app.Activity.RESULT_OK
+import android.content.Intent
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.text.format.DateFormat
@@ -15,6 +17,8 @@ import java.util.*
 class CrimeFragment : Fragment() {
     companion object Companion {
         private val argCrimeId = "crime_id"
+        private val dateDialogName = "DialogDate"
+        private val requestDate = 0
         fun newInstance(crimeId: UUID): CrimeFragment {
             val args = Bundle()
             args.putSerializable(argCrimeId, crimeId)
@@ -42,10 +46,27 @@ class CrimeFragment : Fragment() {
         crimeTitle.addTextChangedListener(TextWatcherChangeOnly { crime.title = it })
 
         crimeDate.text = formatDate(crime.date)
-        crimeDate.isEnabled = false
+        crimeDate.setOnClickListener { v ->
+            val fm = fragmentManager
+            val dialog = DatePickerFragment.newInstance(crime.date)
+            dialog.setTargetFragment(this, requestDate)
+            dialog.show(fm, dateDialogName)
+        }
 
         crimeSolved.isChecked = crime.solved
         crimeSolved.setOnCheckedChangeListener { compoundButton, checked -> crime.solved = checked }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (resultCode != RESULT_OK) {
+            return
+        }
+
+        if (requestCode == requestDate) {
+            val date = data?.getSerializableExtra(DatePickerFragment.extraDate) as Date
+            crime.date = date
+            crimeDate.text = formatDate(crime.date)
+        }
     }
 
     private fun formatDate(date: Date): String {
