@@ -9,8 +9,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".CrimeListActivity"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:name=".CrimeListActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -19,7 +18,7 @@
         </activity>
         <activity
             android:name=".CrimePagerActivity"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:parentActivityName=".CrimeListActivity">
         </activity>
     </application>
 

@@ -4,13 +4,15 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.support.v4.app.Fragment
-import android.support.v4.app.FragmentActivity
 import android.support.v4.app.FragmentStatePagerAdapter
+import android.support.v7.app.AppCompatActivity
+import android.view.Menu
+import android.view.MenuItem
 import com.pawmot.criminalintent.model.CrimeLab
 import kotlinx.android.synthetic.main.activity_crime_pager.*
 import java.util.*
 
-class CrimePagerActivity : FragmentActivity() {
+class CrimePagerActivity : AppCompatActivity() {
     companion object Companion {
         private val extraCrimeId = "com.pawmot.criminalintent.crime_id"
         fun newIntent(ctx: Context, crimeId: UUID): Intent {
@@ -41,5 +43,22 @@ class CrimePagerActivity : FragmentActivity() {
         }
 
         activityCrimePagerViewPager.currentItem = lab.getCrimeIdx(crimeId) ?: 0
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.activity_crime_pager, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+
+        when (item?.itemId) {
+            R.id.menuItemDeleteCrime -> {
+                CrimeLab.instance(this).removeCrimeAt(activityCrimePagerViewPager.currentItem)
+                finish()
+                return true
+            }
+            else -> return super.onOptionsItemSelected(item)
+        }
     }
 }
