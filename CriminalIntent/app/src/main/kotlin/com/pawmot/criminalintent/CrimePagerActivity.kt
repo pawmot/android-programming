@@ -8,6 +8,7 @@ import android.support.v4.app.FragmentStatePagerAdapter
 import android.support.v7.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
+import com.pawmot.criminalintent.model.Crime
 import com.pawmot.criminalintent.model.CrimeLab
 import kotlinx.android.synthetic.main.activity_crime_pager.*
 import java.util.*
@@ -42,10 +43,10 @@ class CrimePagerActivity : AppCompatActivity() {
             }
         }
 
-        activityCrimePagerViewPager.currentItem = lab.getCrimeIdx(crimeId) ?: 0
+        activityCrimePagerViewPager.currentItem = getCrimeIdx(crimes, crimeId) ?: 0
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.activity_crime_pager, menu)
         return true
     }
@@ -54,11 +55,21 @@ class CrimePagerActivity : AppCompatActivity() {
 
         when (item?.itemId) {
             R.id.menuItemDeleteCrime -> {
-                CrimeLab.instance(this).removeCrimeAt(activityCrimePagerViewPager.currentItem)
-                finish()
+                // TODO remove the current crime
+//                CrimeLab.instance(this).removeCrime(crime)
+//                finish()
                 return true
             }
             else -> return super.onOptionsItemSelected(item)
         }
+    }
+
+    private fun getCrimeIdx(crimes: List<Crime>, id: UUID): Int? {
+        crimes.forEachIndexed { i, c ->
+            if (c.uuid == id) {
+                return i
+            }
+        }
+        return null
     }
 }

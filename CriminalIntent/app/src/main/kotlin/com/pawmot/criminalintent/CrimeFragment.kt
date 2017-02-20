@@ -69,6 +69,12 @@ class CrimeFragment : Fragment() {
         }
     }
 
+    override fun onPause() {
+        super.onPause()
+
+        CrimeLab.instance(activity).updateCrime(crime)
+    }
+
     private fun formatDate(date: Date): String {
         return DateFormat.format("EEEE, MMM d, yyyy", date).toString()
     }
