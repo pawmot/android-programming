@@ -23,6 +23,8 @@ class CrimePagerActivity : AppCompatActivity() {
         }
     }
 
+    private lateinit var idxToCrime: (Int) -> Crime
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_crime_pager)
@@ -44,6 +46,8 @@ class CrimePagerActivity : AppCompatActivity() {
         }
 
         activityCrimePagerViewPager.currentItem = getCrimeIdx(crimes, crimeId) ?: 0
+
+        idxToCrime = { crimes[it] }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -55,9 +59,8 @@ class CrimePagerActivity : AppCompatActivity() {
 
         when (item?.itemId) {
             R.id.menuItemDeleteCrime -> {
-                // TODO remove the current crime
-//                CrimeLab.instance(this).removeCrime(crime)
-//                finish()
+                CrimeLab.instance(this).removeCrime(idxToCrime(activityCrimePagerViewPager.currentItem))
+                finish()
                 return true
             }
             else -> return super.onOptionsItemSelected(item)

@@ -9,6 +9,7 @@ object CrimeDbSchema {
             val title = "title"
             val date = "date"
             val solved = "solved"
+            val suspect = "suspect"
         }
     }
 }

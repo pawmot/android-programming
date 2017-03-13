@@ -26,6 +26,7 @@ class CrimeLab private constructor(ctx: Context) {
             cv.put(CrimeTable.Columns.title, crime.title)
             cv.put(CrimeTable.Columns.date, crime.date.time)
             cv.put(CrimeTable.Columns.solved, if(crime.solved) 1 else 0)
+            cv.put(CrimeTable.Columns.suspect, crime.suspect)
 
             return cv
         }
@@ -49,14 +50,12 @@ class CrimeLab private constructor(ctx: Context) {
         val cursor = queryCrimes(null, null)
 
         val crimes = mutableListOf<Crime>()
-        try {
+        cursor.use { cursor ->
             cursor.moveToFirst()
             while (!cursor.isAfterLast) {
                 crimes.add(cursor.getCrime())
                 cursor.moveToNext()
             }
-        } finally {
-            cursor.close()
         }
 
         return crimes
@@ -67,15 +66,13 @@ class CrimeLab private constructor(ctx: Context) {
                 "${CrimeTable.Columns.uuid} = ?",
                 arrayOf(id.toString()))
 
-        try {
+        cursor.use { cursor ->
             if (cursor.count == 0) {
                 return null
             }
 
             cursor.moveToFirst()
             return cursor.getCrime()
-        } finally {
-            cursor.close()
         }
     }
 

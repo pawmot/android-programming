@@ -12,7 +12,14 @@ class CrimeBaseHelper(ctx: Context) : SQLiteOpenHelper(ctx, dbName, null, versio
     }
 
     override fun onCreate(db: SQLiteDatabase) {
-        db.execSQL("CREATE TABLE ${CrimeTable.name}(${CrimeTable.Columns.uuid}, ${CrimeTable.Columns.title}, ${CrimeTable.Columns.date}, ${CrimeTable.Columns.solved})")
+        db.execSQL("""
+        |CREATE TABLE ${CrimeTable.name}(
+        |_id integer primary key autoincrement,
+        |${CrimeTable.Columns.uuid} unique,
+        |${CrimeTable.Columns.title},
+        |${CrimeTable.Columns.date},
+        |${CrimeTable.Columns.solved},
+        |${CrimeTable.Columns.suspect})""".trimMargin())
 
     }
 
