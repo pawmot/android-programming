@@ -38,6 +38,8 @@ class CrimeListFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        val lab = CrimeLab.instance(activity)
+        adapter?.setCrimes(lab.getCrimes())
         adapter?.notifyDataSetChanged()
         updateSubtitle()
     }

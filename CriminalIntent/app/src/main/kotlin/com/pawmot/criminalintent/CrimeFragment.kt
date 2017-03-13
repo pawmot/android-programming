@@ -2,8 +2,12 @@ package com.pawmot.criminalintent
 
 import android.app.Activity.RESULT_OK
 import android.content.Intent
+import android.content.Intent.ACTION_PICK
+import android.content.pm.PackageManager.MATCH_DEFAULT_ONLY
 import android.os.Bundle
+import android.provider.ContactsContract
 import android.support.v4.app.Fragment
+import android.support.v4.app.ShareCompat
 import android.text.format.DateFormat
 import android.view.LayoutInflater
 import android.view.View
@@ -19,6 +23,7 @@ class CrimeFragment : Fragment() {
         private val argCrimeId = "crime_id"
         private val dateDialogName = "DialogDate"
         private val requestDate = 0
+        private val requestContact = 1
         fun newInstance(crimeId: UUID): CrimeFragment {
             val args = Bundle()
             args.putSerializable(argCrimeId, crimeId)
@@ -46,7 +51,7 @@ class CrimeFragment : Fragment() {
         crimeTitle.addTextChangedListener(TextWatcherChangeOnly { crime.title = it })
 
         crimeDate.text = formatDate(crime.date)
-        crimeDate.setOnClickListener { v ->
+        crimeDate.setOnClickListener { _ ->
             val fm = fragmentManager
             val dialog = DatePickerFragment.newInstance(crime.date)
             dialog.setTargetFragment(this, requestDate)
@@ -54,7 +59,31 @@ class CrimeFragment : Fragment() {
         }
 
         crimeSolved.isChecked = crime.solved
-        crimeSolved.setOnCheckedChangeListener { compoundButton, checked -> crime.solved = checked }
+        crimeSolved.setOnCheckedChangeListener { _, checked -> crime.solved = checked }
+
+        val pickContact = Intent(ACTION_PICK, ContactsContract.Contacts.CONTENT_URI)
+        chooseSuspect.setOnClickListener { _ ->
+            startActivityForResult(pickContact, requestContact)
+        }
+
+        if (crime.suspect != null) {
+            chooseSuspect.text = crime.suspect
+        }
+
+        val packageManager = activity.packageManager
+        if (packageManager.resolveActivity(pickContact, MATCH_DEFAULT_ONLY) == null) {
+            chooseSuspect.isEnabled = false
+        }
+
+        sendCrimeReport.setOnClickListener { _ ->
+            val intent = ShareCompat.IntentBuilder.from(activity)
+                    .setType("text/plain")
+                    .setText(getCrimeReport())
+                    .setSubject(getString(R.string.crime_report_subject))
+                    .setChooserTitle(R.string.send_report)
+                    .createChooserIntent()
+            startActivity(intent)
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -66,10 +95,52 @@ class CrimeFragment : Fragment() {
             val date = data?.getSerializableExtra(DatePickerFragment.extraDate) as Date
             crime.date = date
             crimeDate.text = formatDate(crime.date)
+        } else if (requestCode == requestContact && data != null) {
+            val contactUri = data.data
+            val queryFields = arrayOf(ContactsContract.Contacts.DISPLAY_NAME)
+            val cursor = activity.contentResolver.query(contactUri, queryFields, null, null, null)
+            cursor.use { c ->
+                if (c.count == 0) {
+                    return
+                }
+
+                c.moveToFirst()
+                val suspect = c.getString(0)
+                crime.suspect = suspect
+                chooseSuspect.text = suspect
+            }
         }
+    }
+
+    override fun onPause() {
+        super.onPause()
+
+        CrimeLab.instance(activity).updateCrime(crime)
     }
 
     private fun formatDate(date: Date): String {
         return DateFormat.format("EEEE, MMM d, yyyy", date).toString()
+    }
+
+    private fun getCrimeReport(): String {
+        val solvedString =
+                if (crime.solved) {
+                    getString(R.string.crime_report_solved)
+                } else {
+                    getString(R.string.crime_report_unsolved)
+                }
+
+        val dateFormat = "EEE, MMM dd"
+        val dateString = DateFormat.format(dateFormat, crime.date).toString()
+
+        var suspect = crime.suspect
+        if (suspect == null) {
+            suspect = getString(R.string.crime_report_no_suspect)
+        } else {
+            suspect = getString(R.string.crime_report_suspect, suspect)
+        }
+
+        val report = getString(R.string.crime_report, crime.title, dateString, solvedString, suspect)
+        return report
     }
 }

@@ -10,7 +10,7 @@ import com.pawmot.criminalintent.R
 import com.pawmot.criminalintent.model.Crime
 import kotlinx.android.synthetic.main.list_item_crime.view.*
 
-class CrimeRecyclerViewAdapter(private val crimes: List<Crime>) : RecyclerView.Adapter<CrimeRecyclerViewAdapter.CrimeHolder>() {
+class CrimeRecyclerViewAdapter(private var crimes: List<Crime>) : RecyclerView.Adapter<CrimeRecyclerViewAdapter.CrimeHolder>() {
 
     class CrimeHolder(view: View, private val ctx: Context) : RecyclerView.ViewHolder(view), View.OnClickListener {
 
@@ -49,5 +49,9 @@ class CrimeRecyclerViewAdapter(private val crimes: List<Crime>) : RecyclerView.A
 
     override fun getItemCount(): Int {
         return crimes.size
+    }
+
+    fun setCrimes(crimes: List<Crime>) {
+        this.crimes = crimes
     }
 }
