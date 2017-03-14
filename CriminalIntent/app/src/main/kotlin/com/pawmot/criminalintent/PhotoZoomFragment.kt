@@ -1,4 +1,7 @@
 package com.pawmot.criminalintent
 
-class PhotoZoomFragment {
+import android.support.v4.app.DialogFragment
+
+class PhotoZoomFragment : DialogFragment() {
+
 }
