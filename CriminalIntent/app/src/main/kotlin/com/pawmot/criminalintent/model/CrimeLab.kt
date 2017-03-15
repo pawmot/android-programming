@@ -3,12 +3,14 @@ package com.pawmot.criminalintent.model
 import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
+import android.os.Environment.DIRECTORY_PICTURES
 import com.pawmot.criminalintent.dal.CrimeBaseHelper
 import com.pawmot.criminalintent.dal.CrimeCursorWrapper
 import com.pawmot.criminalintent.dal.CrimeDbSchema.CrimeTable
+import java.io.File
 import java.util.*
 
-class CrimeLab private constructor(ctx: Context) {
+class CrimeLab private constructor(private val ctx: Context) {
     companion object Singleton {
         private var instance: CrimeLab? = null
 
@@ -25,7 +27,7 @@ class CrimeLab private constructor(ctx: Context) {
             cv.put(CrimeTable.Columns.uuid, crime.uuid.toString())
             cv.put(CrimeTable.Columns.title, crime.title)
             cv.put(CrimeTable.Columns.date, crime.date.time)
-            cv.put(CrimeTable.Columns.solved, if(crime.solved) 1 else 0)
+            cv.put(CrimeTable.Columns.solved, if (crime.solved) 1 else 0)
             cv.put(CrimeTable.Columns.suspect, crime.suspect)
 
             return cv
@@ -78,6 +80,16 @@ class CrimeLab private constructor(ctx: Context) {
 
     fun removeCrime(crime: Crime) {
         db.delete(CrimeTable.name, "${CrimeTable.Columns.uuid} = ?", arrayOf(crime.uuid.toString()))
+    }
+
+    fun getPhotoFile(crime: Crime): File {
+        val picturesDir = ctx.getExternalFilesDir(DIRECTORY_PICTURES)
+        val filename = CrimePhotoFilename(crime).get()
+        val file = File(picturesDir, filename)
+        if (!file.exists()) {
+            file.createNewFile()
+        }
+        return file
     }
 
     private fun queryCrimes(whereClause: String?, whereArgs: Array<String>?): CrimeCursorWrapper {

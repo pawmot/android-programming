@@ -6,24 +6,33 @@ import android.content.Intent.ACTION_PICK
 import android.content.pm.PackageManager.MATCH_DEFAULT_ONLY
 import android.os.Bundle
 import android.provider.ContactsContract
+import android.provider.MediaStore.ACTION_IMAGE_CAPTURE
+import android.provider.MediaStore.EXTRA_OUTPUT
 import android.support.v4.app.Fragment
 import android.support.v4.app.ShareCompat
+import android.support.v4.content.FileProvider
 import android.text.format.DateFormat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.pawmot.criminalintent.model.Crime
 import com.pawmot.criminalintent.model.CrimeLab
+import com.pawmot.criminalintent.util.PictureUtils
 import com.pawmot.criminalintent.util.TextWatcherChangeOnly
 import kotlinx.android.synthetic.main.fragment_crime.*
+import kotlinx.android.synthetic.main.view_camera_and_title.*
+import java.io.File
 import java.util.*
 
 class CrimeFragment : Fragment() {
     companion object Companion {
+        private val tag = CrimeFragment::class.simpleName
         private val argCrimeId = "crime_id"
         private val dateDialogName = "DialogDate"
+        private val photoDialogName = "DialogPhoto"
         private val requestDate = 0
         private val requestContact = 1
+        private val requestPhoto = 2
         fun newInstance(crimeId: UUID): CrimeFragment {
             val args = Bundle()
             args.putSerializable(argCrimeId, crimeId)
@@ -35,11 +44,13 @@ class CrimeFragment : Fragment() {
     }
 
     private lateinit var crime: Crime
+    private var photoFile: File? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val crimeId = arguments.getSerializable(argCrimeId) as UUID
         crime = CrimeLab.instance(activity).getCrime(crimeId) ?: Crime.new()
+        photoFile = CrimeLab.instance(activity).getPhotoFile(crime)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -84,6 +95,27 @@ class CrimeFragment : Fragment() {
                     .createChooserIntent()
             startActivity(intent)
         }
+
+        val captureImage = Intent(ACTION_IMAGE_CAPTURE)
+        val canTakePhoto = photoFile != null && captureImage.resolveActivity(packageManager) != null
+        crimeCamera.isEnabled = canTakePhoto
+
+        if (canTakePhoto) {
+            val uri = FileProvider.getUriForFile(this.activity, "com.pawmot.criminalintent.fileprovider", photoFile)
+            captureImage.putExtra(EXTRA_OUTPUT, uri)
+        }
+
+        crimeCamera.setOnClickListener { _ ->
+            startActivityForResult(captureImage, requestPhoto)
+        }
+
+        updatePhotoView()
+
+        crimePhoto.setOnClickListener { _ ->
+            val fm = fragmentManager
+            val dialog = PhotoZoomFragment.newInstance(photoFile!!)
+            dialog.show(fm, photoDialogName)
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -109,6 +141,8 @@ class CrimeFragment : Fragment() {
                 crime.suspect = suspect
                 chooseSuspect.text = suspect
             }
+        } else if (requestCode == requestPhoto) {
+            updatePhotoView()
         }
     }
 
@@ -142,5 +176,14 @@ class CrimeFragment : Fragment() {
 
         val report = getString(R.string.crime_report, crime.title, dateString, solvedString, suspect)
         return report
+    }
+
+    private fun updatePhotoView() {
+        if (photoFile == null || !photoFile!!.exists()) {
+            crimePhoto.setImageDrawable(null)
+        } else {
+            val bmp = PictureUtils.getScaledBitmap(photoFile!!.path, activity)
+            crimePhoto.setImageBitmap(bmp)
+        }
     }
 }
