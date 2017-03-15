@@ -29,6 +29,7 @@ class CrimeFragment : Fragment() {
         private val tag = CrimeFragment::class.simpleName
         private val argCrimeId = "crime_id"
         private val dateDialogName = "DialogDate"
+        private val photoDialogName = "DialogPhoto"
         private val requestDate = 0
         private val requestContact = 1
         private val requestPhoto = 2
@@ -109,6 +110,12 @@ class CrimeFragment : Fragment() {
         }
 
         updatePhotoView()
+
+        crimePhoto.setOnClickListener { _ ->
+            val fm = fragmentManager
+            val dialog = PhotoZoomFragment.newInstance(photoFile!!)
+            dialog.show(fm, photoDialogName)
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
