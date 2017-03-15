@@ -13,7 +13,8 @@ import com.pawmot.criminalintent.model.CrimeLab
 import kotlinx.android.synthetic.main.activity_crime_pager.*
 import java.util.*
 
-class CrimePagerActivity : AppCompatActivity() {
+class CrimePagerActivity : AppCompatActivity(), CrimeFragment.Callbacks {
+
     companion object Companion {
         private val extraCrimeId = "com.pawmot.criminalintent.crime_id"
         fun newIntent(ctx: Context, crimeId: UUID): Intent {
@@ -65,6 +66,9 @@ class CrimePagerActivity : AppCompatActivity() {
             }
             else -> return super.onOptionsItemSelected(item)
         }
+    }
+
+    override fun onCrimeUpdate(crime: Crime) {
     }
 
     private fun getCrimeIdx(crimes: List<Crime>, id: UUID): Int? {

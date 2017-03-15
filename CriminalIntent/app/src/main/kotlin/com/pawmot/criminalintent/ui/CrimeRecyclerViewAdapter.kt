@@ -5,14 +5,13 @@ import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.pawmot.criminalintent.CrimePagerActivity
 import com.pawmot.criminalintent.R
 import com.pawmot.criminalintent.model.Crime
 import kotlinx.android.synthetic.main.list_item_crime.view.*
 
-class CrimeRecyclerViewAdapter(private var crimes: List<Crime>) : RecyclerView.Adapter<CrimeRecyclerViewAdapter.CrimeHolder>() {
+class CrimeRecyclerViewAdapter(private var crimes: List<Crime>, private val crimeSelectedCallback: (Crime) -> Unit) : RecyclerView.Adapter<CrimeRecyclerViewAdapter.CrimeHolder>() {
 
-    class CrimeHolder(view: View, private val ctx: Context) : RecyclerView.ViewHolder(view), View.OnClickListener {
+    class CrimeHolder(view: View, private val ctx: Context, private val crimeSelectedCallback: (Crime) -> Unit) : RecyclerView.ViewHolder(view), View.OnClickListener {
 
         init {
             itemView.setOnClickListener(this)
@@ -32,15 +31,14 @@ class CrimeRecyclerViewAdapter(private var crimes: List<Crime>) : RecyclerView.A
         }
 
         override fun onClick(v: View?) {
-            val intent = CrimePagerActivity.newIntent(ctx, crime.uuid!!)
-            ctx.startActivity(intent)
+            crimeSelectedCallback(crime)
         }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): CrimeHolder {
         val inflater = LayoutInflater.from(parent?.context)
         val view = inflater.inflate(R.layout.list_item_crime, parent, false)
-        return CrimeHolder(view, parent?.context!!)
+        return CrimeHolder(view, parent?.context!!, crimeSelectedCallback)
     }
 
     override fun onBindViewHolder(holder: CrimeHolder?, position: Int) {

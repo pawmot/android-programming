@@ -1,6 +1,7 @@
 package com.pawmot.criminalintent
 
 import android.app.Activity.RESULT_OK
+import android.content.Context
 import android.content.Intent
 import android.content.Intent.ACTION_PICK
 import android.content.pm.PackageManager.MATCH_DEFAULT_ONLY
@@ -43,8 +44,23 @@ class CrimeFragment : Fragment() {
         }
     }
 
+    interface Callbacks {
+        fun onCrimeUpdate(crime: Crime)
+    }
+
     private lateinit var crime: Crime
     private var photoFile: File? = null
+    private var callbacks: Callbacks? = null
+
+    override fun onAttach(context: Context?) {
+        super.onAttach(context)
+        callbacks = activity as Callbacks
+    }
+
+    override fun onDetach() {
+        super.onDetach()
+        callbacks = null
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,7 +75,10 @@ class CrimeFragment : Fragment() {
 
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         crimeTitle.setText(crime.title)
-        crimeTitle.addTextChangedListener(TextWatcherChangeOnly { crime.title = it })
+        crimeTitle.addTextChangedListener(TextWatcherChangeOnly {
+            crime.title = it
+            updateCrime()
+        })
 
         crimeDate.text = formatDate(crime.date)
         crimeDate.setOnClickListener { _ ->
@@ -70,7 +89,10 @@ class CrimeFragment : Fragment() {
         }
 
         crimeSolved.isChecked = crime.solved
-        crimeSolved.setOnCheckedChangeListener { _, checked -> crime.solved = checked }
+        crimeSolved.setOnCheckedChangeListener { _, checked ->
+            crime.solved = checked
+            updateCrime()
+        }
 
         val pickContact = Intent(ACTION_PICK, ContactsContract.Contacts.CONTENT_URI)
         chooseSuspect.setOnClickListener { _ ->
@@ -126,6 +148,7 @@ class CrimeFragment : Fragment() {
         if (requestCode == requestDate) {
             val date = data?.getSerializableExtra(DatePickerFragment.extraDate) as Date
             crime.date = date
+            updateCrime()
             crimeDate.text = formatDate(crime.date)
         } else if (requestCode == requestContact && data != null) {
             val contactUri = data.data
@@ -139,9 +162,11 @@ class CrimeFragment : Fragment() {
                 c.moveToFirst()
                 val suspect = c.getString(0)
                 crime.suspect = suspect
+                updateCrime()
                 chooseSuspect.text = suspect
             }
         } else if (requestCode == requestPhoto) {
+            updateCrime()
             updatePhotoView()
         }
     }
@@ -185,5 +210,10 @@ class CrimeFragment : Fragment() {
             val bmp = PictureUtils.getScaledBitmap(photoFile!!.path, activity)
             crimePhoto.setImageBitmap(bmp)
         }
+    }
+
+    private fun updateCrime() {
+        CrimeLab.instance(activity).updateCrime(crime)
+        callbacks?.onCrimeUpdate(crime)
     }
 }
