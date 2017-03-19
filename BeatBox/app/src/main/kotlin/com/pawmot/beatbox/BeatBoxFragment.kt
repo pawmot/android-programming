@@ -21,6 +21,7 @@ class BeatBoxFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        retainInstance = true
 
         beatBox = BeatBox(activity)
     }
@@ -34,14 +35,28 @@ class BeatBoxFragment : Fragment() {
         fragmentBeatBoxRecyclerView.adapter = SoundAdapter(beatBox.sounds)
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        beatBox.release()
+    }
+
     inner class SoundHolder(inflater: LayoutInflater, container: ViewGroup?) :
-            RecyclerView.ViewHolder(inflater.inflate(R.layout.list_item_sound, container, false)) {
+            RecyclerView.ViewHolder(inflater.inflate(R.layout.list_item_sound, container, false)),
+            View.OnClickListener {
         private val button = itemView.listItemSoundButton
         private var sound: Sound? = null
+
+        init {
+            button.setOnClickListener(this)
+        }
 
         fun bindSound(sound: Sound) {
             this.sound = sound
             button.text = sound.name
+        }
+
+        override fun onClick(v: View?) {
+            beatBox.play(sound!!)
         }
     }
 
