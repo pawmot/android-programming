@@ -14,6 +14,17 @@ object FlickrFetchr {
     private val TAG = FlickrFetchr::class.simpleName
     private val apiKey = "0a8de1c6e11ec7e061aea7aa1a5709c4"
 
+    private val fetchRecentsMethod = "flickr.photos.getRecent"
+    private val searchMethod = "flickr.photos.search"
+    private val endpoint = Uri
+            .parse("https://api.flickr.com/services/rest/")
+            .buildUpon()
+            .appendQueryParameter("api_key", apiKey)
+            .appendQueryParameter("format", "json")
+            .appendQueryParameter("nojsoncallback", "1")
+            .appendQueryParameter("extras", "url_s")
+            .build()
+
     fun getUrlBytes(urlStr: String): ByteArray {
         val url = URL(urlStr)
         val conn = url.openConnection() as HttpsURLConnection
@@ -44,19 +55,33 @@ object FlickrFetchr {
         return String(getUrlBytes(urlStr))
     }
 
+    fun fetchRecentPhotos(): List<GalleryItem> {
+        val url = buildUrl(fetchRecentsMethod)
+        return downloadGalleryItems(url)
+    }
+
+    fun searchPhotos(query: String): List<GalleryItem> {
+        val url = buildUrl(searchMethod, query)
+        return downloadGalleryItems(url)
+    }
+
+    private fun buildUrl(method: String, query: String? = null): String {
+        val uriBuilder = endpoint
+                .buildUpon()
+                .appendQueryParameter("method", method)
+
+        if (method == searchMethod) {
+            uriBuilder.appendQueryParameter("text", query)
+        }
+
+        return uriBuilder.build().toString()
+    }
+
     // FIXME: paging
-    fun fetchItems(): List<GalleryItem> {
+    fun downloadGalleryItems(url: String): List<GalleryItem> {
         val items = mutableListOf<GalleryItem>()
 
         try {
-            val url = Uri.parse("https://api.flickr.com/services/rest")
-                    .buildUpon()
-                    .appendQueryParameter("method", "flickr.photos.getRecent")
-                    .appendQueryParameter("api_key", apiKey)
-                    .appendQueryParameter("format", "json")
-                    .appendQueryParameter("nojsoncallback", "1")
-                    .appendQueryParameter("extras", "url_s")
-                    .build().toString()
             val json = getUrlString(url)
             Log.i(TAG, "Received JSON: $json")
             // FIXME: consider using Gson

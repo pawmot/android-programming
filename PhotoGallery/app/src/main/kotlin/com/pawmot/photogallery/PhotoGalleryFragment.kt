@@ -9,8 +9,12 @@ import android.os.Handler
 import android.support.v4.app.Fragment
 import android.support.v7.widget.GridLayoutManager
 import android.support.v7.widget.RecyclerView
+import android.support.v7.widget.SearchView
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import com.pawmot.photogallery.ThumbnailDownloader.ThumbnailDownloadListener
@@ -31,7 +35,8 @@ class PhotoGalleryFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         retainInstance = true
-        FetchItemsTask().execute()
+        setHasOptionsMenu(true)
+        updateItems()
 
         val responseHandler = Handler()
         thumbnailDownloader = ThumbnailDownloader(responseHandler)
@@ -67,6 +72,49 @@ class PhotoGalleryFragment : Fragment() {
         Log.i(TAG, "Background thread destroyed")
     }
 
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        super.onCreateOptionsMenu(menu, inflater)
+        inflater.inflate(R.menu.fragment_photo_gallery, menu)
+
+        val searchView = menu.findItem(R.id.menuItemSearch).actionView as SearchView
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String): Boolean {
+                Log.d(TAG, "QueryTextSubmit $query")
+                QueryPreferences.setStoredQuery(activity, query)
+                updateItems()
+                // FIXME: hide keyboard
+                return true
+            }
+
+            override fun onQueryTextChange(newText: String): Boolean {
+                Log.d(TAG, "QueryTextChange $newText")
+                return false
+            }
+
+        })
+
+        searchView.setOnSearchClickListener({
+            val query = QueryPreferences.getStoredQuery(activity)
+            searchView.setQuery(query, false)
+        })
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.menuItemClear -> {
+                QueryPreferences.setStoredQuery(activity, null)
+                updateItems()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    private fun updateItems() {
+        val query = QueryPreferences.getStoredQuery(activity)
+        FetchItemsTask(query).execute()
+    }
+
     private fun setupAdapter() {
         if (isAdded) {
             fragmentPhotoGalleryRecyclerView.adapter = PhotoAdapter(items)
@@ -91,7 +139,7 @@ class PhotoGalleryFragment : Fragment() {
 
         override fun onBindViewHolder(holder: PhotoHolder, position: Int) {
             val item = items[position]
-            //holder.bindDrawable(item)
+            // FIXME: Implement caching and preloading (10 prev & 10 next)
             thumbnailDownloader.queueThumbnail(holder, item.url)
         }
 
@@ -100,10 +148,12 @@ class PhotoGalleryFragment : Fragment() {
         }
     }
 
-    inner private class FetchItemsTask : AsyncTask<Void, Void, List<GalleryItem>>() {
+    inner private class FetchItemsTask(private val query: String?) : AsyncTask<Void, Void, List<GalleryItem>>() {
 
         override fun doInBackground(vararg params: Void?): List<GalleryItem> {
-            return FlickrFetchr.fetchItems()
+            // FIXME: when clearing it does not work, investigate.
+            // FIXME: until this is done, show a loading indicator
+            return if (query == null) FlickrFetchr.fetchRecentPhotos() else FlickrFetchr.searchPhotos(query)
         }
 
         override fun onPostExecute(result: List<GalleryItem>) {
